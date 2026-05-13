@@ -1,0 +1,19 @@
+{
+  "name": "__VAULT_NAME__",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Personal knowledge base — managed by brain-kit",
+  "bin": {
+    "brain": "./bin/brain.mjs"
+  },
+  "scripts": {
+    "brain": "node bin/brain.mjs"
+  },
+  "brainKit": {
+    "defaultProject": "__DEFAULT_PROJECT__",
+    "projectPrefixes": {},
+    "defaultRepo": null,
+    "internsDir": null,
+    "memoryPath": null
+  }
+}

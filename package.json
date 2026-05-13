@@ -1,0 +1,17 @@
+{
+  "name": "brain-kit",
+  "version": "0.1.0",
+  "description": "A knowledge-base dev workflow: brain CLI + Claude Code skills + Obsidian vault skeleton",
+  "type": "module",
+  "bin": {
+    "brain-kit": "./bin/install.mjs"
+  },
+  "scripts": {
+    "install:kit": "node bin/install.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DOOduneye/brain-kit"
+  },
+  "license": "MIT"
+}
