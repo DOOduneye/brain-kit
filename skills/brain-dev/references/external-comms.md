@@ -60,7 +60,7 @@ Short, descriptive, `<your-prefix>/<what-changed>`. 2–4 kebab-case words. No i
 `<type>: <what changed>` subject, short body explaining *why*.
 
 - Types: `fix`, `feat`, `refactor`, `perf`, `chore`, `test`.
-- No AI attribution. No `Co-Authored-By: Claude`. No `Generated with Claude Code`. No emoji.
+- No AI attribution. No `Co-Authored-By: <agent>` lines. No "Generated with <tool>" footers. No emoji.
 - Body is optional. When present, motivation — not a restatement of the diff.
 
 ✅
@@ -79,8 +79,8 @@ Update account.py
 - modify _execute_via_sql
 - modify _fetch_company_name_domain
 
-Co-Authored-By: Claude <noreply@anthropic.com>
-🤖 Generated with Claude Code
+Co-Authored-By: <agent> <noreply@example.com>
+🤖 Generated with <ai-tool>
 ```
 
 ## The two failure modes
@@ -107,7 +107,7 @@ Internal symbol names earn their place when the change *is* that symbol — a re
 
 If you're writing a debugging journal — what you reproduced, what EXPLAIN ANALYZE said, which org, which filter — you're writing for yourself. That's a good *issue note*, not a PR description.
 
-Trivial change: 1–2 sentences. Non-trivial: a short paragraph. Every line earns its place by reducing reviewer confusion, not by recording what you saw. No `## Summary`, `## Test plan`, headers, bullets, checkbox lists, `Co-Authored-By: Claude`, `🤖 Generated with Claude Code`.
+Trivial change: 1–2 sentences. Non-trivial: a short paragraph. Every line earns its place by reducing reviewer confusion, not by recording what you saw. No `## Summary`, `## Test plan`, headers, bullets, checkbox lists, AI attribution boilerplate.
 
 ✅ (trivial — system-visible behavior, not internal name)
 ```

@@ -52,7 +52,7 @@ Three sessions showing how each mode plays out. The specifics are illustrative �
 
 ### Flow
 
-1. **Investigate the skill** — Loaded the skill file. Confirmed the built-in tool exists. **Root cause:** skill referenced a manual worktree pattern instead of the built-in `EnterWorktree` tool.
+1. **Investigate the skill** — Loaded the skill file. Confirmed the built-in worktree tool exists in the harness. **Root cause:** skill referenced a manual worktree pattern instead of the built-in tool.
 
 2. **KB context** — `brain query "worktree"` found no prior articles. This was a new discovery.
 

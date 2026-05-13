@@ -1,10 +1,12 @@
 # brain-kit
 
-A knowledge-base dev workflow for Claude Code. Three pieces:
+A knowledge-base dev workflow for agent CLIs (Claude Code, Codex, Cursor, anything that reads `AGENTS.md`). Three pieces:
 
 1. **`brain` CLI** — operates on a markdown vault (works great with Obsidian, but isn't required)
-2. **Skills** — `/brain-dev`, `/compile`, `/wrap` for Claude Code
+2. **Skills** — `brain-dev`, `compile`, `wrap` — installable into Claude Code, Codex, Cursor `.cursor/rules`, or as a shared `AGENTS.md`
 3. **Vault skeleton** — opinionated folder layout with project conventions, kanban, and a sample library article
+
+Pick one or more agent targets at install time. The CLI and vault are tool-agnostic.
 
 The premise: every Claude Code session forgets. The vault is shared memory. When you discover something — a gotcha, a pattern, a piece of architecture — it gets filed back so the next session starts where this one ended.
 
@@ -24,11 +26,15 @@ brain-kit/
 │   ├── docs/specs/         # KB methodology spec
 │   └── CLAUDE.md           # vault-level agent instructions
 ├── skills/
-│   ├── brain-dev/          # the main dev workflow
-│   ├── compile/            # /compile — two-step KB article compilation
-│   └── wrap/               # /wrap — session handoff
-└── commands/
-    └── wrap.md             # slash command shim
+│   ├── brain-dev/          # the main dev workflow (source of truth)
+│   ├── compile/            # two-step KB article compilation
+│   └── wrap/               # session handoff
+├── commands/
+│   └── wrap.md             # Claude Code slash command shim
+└── adapters/               # per-target transformations
+    ├── cursor/             # .cursor/rules/*.mdc frontmatter template
+    ├── agents-md/          # AGENTS.md header
+    └── codex/              # plain markdown (no transformation needed)
 ```
 
 ## Install
@@ -39,32 +45,39 @@ cd brain-kit
 ./install.sh
 ```
 
-It prompts for:
+It prompts for vault path, vault name (used for `obsidian://` links), and first project slug. Then it scaffolds the vault, runs `npm link` to make `brain` globally available, and installs skills for the selected target(s).
 
-- vault path (default `~/Documents/brain`)
-- vault name (used for `obsidian://` links — default: basename of vault path)
-- first project slug (e.g. `work`, `platform`, `customer-intelligence`)
+### Targets
 
-Then:
+| Target | What gets installed | Default location |
+|---|---|---|
+| `claude-code` (default) | `SKILL.md` + `references/` + `/wrap` slash command | `~/.claude/skills/` and `~/.claude/commands/` |
+| `codex` | Frontmatter-stripped markdown, references inlined into one file per skill | `~/.codex/skills/` |
+| `cursor` | `.cursor/rules/*.mdc` with Cursor frontmatter | Each repo passed via `--cursor-repos` |
+| `agents-md` | Single `AGENTS.md` with all skill bodies concatenated | Vault root, plus any repos in `--agents-md-repos` |
+| `none` | No skills installed — just CLI + vault | — |
 
-- copies `kb-skeleton/` to your vault path
-- substitutes the placeholders in `package.json`, the kanban view, and the project index
-- runs `npm link` to make `brain` globally available
-- copies (or symlinks with `--link`) the skills into `~/.claude/skills/`
-- copies the `/wrap` slash command into `~/.claude/commands/`
-
-### Non-interactive
+### Examples
 
 ```bash
-./install.sh \
-  --vault ~/kb \
-  --name kb \
-  --project platform \
-  --link \
-  --yes
+./install.sh                                              # Claude Code, interactive
+
+./install.sh --target claude-code,cursor \
+             --cursor-repos ~/code/app1,~/code/app2       # Claude Code + Cursor rules in two repos
+
+./install.sh --target agents-md \
+             --agents-md-repos ~/code/app                 # AGENTS.md in vault + one repo
+
+./install.sh --target none --vault ~/kb --yes             # Just the CLI and vault
+
+./install.sh --target claude-code --link --yes            # Symlink skills for live edits
 ```
 
 See `./install.sh --help` for all flags.
+
+### Cross-harness compatibility
+
+The skill content (in `skills/*/SKILL.md`) is mostly tool-agnostic prose. The few harness-specific tool references (e.g. `EnterWorktree`) are written to degrade gracefully — they include the equivalent shell command so any agent can follow along.
 
 ## Composability
 
@@ -112,11 +125,13 @@ brain resume                             # next session: load latest handoff
 
 ## Skills
 
-After install, you get three skills in Claude Code:
+Three skills, identical content across targets:
 
-- **`/brain-dev`** — the dev workflow. Three modes: do it, draft it, work an issue. KB-first investigation, session logs, learning loop.
-- **`/compile`** — two-step library article compilation. Extract sources, then write narrative. Never single-pass.
-- **`/wrap`** — session handoff. Tidies state, sweeps PR links, writes a handoff doc to `sessions/handoffs/` for the next session.
+- **`brain-dev`** — the dev workflow. Three modes: do it, draft it, work an issue. KB-first investigation, session logs, learning loop.
+- **`compile`** — two-step library article compilation. Extract sources, then write narrative. Never single-pass.
+- **`wrap`** — session handoff. Tidies state, sweeps PR links, writes a handoff doc to `sessions/handoffs/` for the next session.
+
+Source of truth lives in `skills/<name>/SKILL.md` (Claude Code format). At install time, the chosen adapter transforms each skill for its target — strips/replaces frontmatter, inlines references where one-file-per-skill is required.
 
 ## Update
 

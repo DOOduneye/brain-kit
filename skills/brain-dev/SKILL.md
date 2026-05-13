@@ -231,7 +231,7 @@ For issue work spanning sessions: `brain wip start <ID>` / `brain wip done <ID>`
 
 ## Building
 
-**Isolation.** Use `EnterWorktree` with a kebab-case branch name. Rename immediately if needed.
+**Isolation.** Use your harness's worktree tool if it has one (`EnterWorktree` in Claude Code, `worktree` in Codex), or `git worktree add ../<repo>-<branch> -b <your-prefix>/<branch>` directly. Branch name: 2–4 kebab words.
 
 **Migrations in separate PRs.** Migration file only. Don't run migrations from inside a worktree.
 
