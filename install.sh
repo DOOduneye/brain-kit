@@ -319,9 +319,11 @@ install_cursor() {
   done
 }
 
-build_agents_md() {
+# Write the skill content (no header) between brain-kit markers.
+write_skills_block() {
   local out="$1"
-  cat "$SCRIPT_DIR/adapters/agents-md/header.md" > "$out"
+  echo "<!-- brain-kit:start -->"     >> "$out"
+  echo "<!-- managed by brain-kit installer — content between markers is regenerated -->" >> "$out"
   for skill_dir in "$SCRIPT_DIR/skills"/*/; do
     name=$(basename "${skill_dir%/}")
     src="${skill_dir}SKILL.md"
@@ -336,18 +338,36 @@ build_agents_md() {
       done
     fi
   done
+  echo ""                              >> "$out"
+  echo "<!-- brain-kit:end -->"        >> "$out"
+}
+
+# Splice the skills block into an AGENTS.md, replacing any existing block.
+splice_skills_into_agents_md() {
+  local target="$1"
+  if [[ ! -f "$target" ]]; then
+    cat "$SCRIPT_DIR/adapters/agents-md/header.md" > "$target"
+  fi
+  # Drop any prior brain-kit block
+  if grep -q "<!-- brain-kit:start -->" "$target"; then
+    awk '
+      /<!-- brain-kit:start -->/ { skip=1; next }
+      /<!-- brain-kit:end -->/   { skip=0; next }
+      !skip
+    ' "$target" > "$target.tmp" && mv "$target.tmp" "$target"
+  fi
+  # Append fresh block
+  echo ""             >> "$target"
+  write_skills_block "$target"
 }
 
 install_agents_md() {
   echo
-  echo "==> [agents-md] AGENTS.md → $VAULT (vault root)"
+  echo "==> [agents-md] splicing skills into AGENTS.md"
+  # Vault root — AGENTS.md exists from the skeleton; splice between markers
   local vault_dest="$VAULT/AGENTS.md"
-  if [[ -e "$vault_dest" ]] && ! confirm_overwrite "$vault_dest"; then
-    echo "    skipped: $vault_dest"
-  else
-    build_agents_md "$vault_dest"
-    echo "    wrote: $vault_dest"
-  fi
+  splice_skills_into_agents_md "$vault_dest"
+  echo "    updated: $vault_dest"
   if [[ -n "$AGENTS_MD_REPOS" ]]; then
     IFS=',' read -ra repos <<< "$AGENTS_MD_REPOS"
     for raw in "${repos[@]}"; do
@@ -355,12 +375,8 @@ install_agents_md() {
       if [[ ! -d "$repo" ]]; then
         echo "    skipped (not a dir): $repo"; continue
       fi
-      local dest="$repo/AGENTS.md"
-      if [[ -e "$dest" ]] && ! confirm_overwrite "$dest"; then
-        echo "    skipped: $dest"; continue
-      fi
-      build_agents_md "$dest"
-      echo "    wrote: $dest"
+      splice_skills_into_agents_md "$repo/AGENTS.md"
+      echo "    updated: $repo/AGENTS.md"
     done
   fi
 }

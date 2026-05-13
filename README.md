@@ -54,7 +54,7 @@ It prompts for vault path, vault name (used for `obsidian://` links), and first 
 | `claude-code` (default) | `SKILL.md` + `references/` + `/wrap` slash command | `~/.claude/skills/` and `~/.claude/commands/` |
 | `codex` | Frontmatter-stripped markdown, references inlined into one file per skill | `~/.codex/skills/` |
 | `cursor` | `.cursor/rules/*.mdc` with Cursor frontmatter | Each repo passed via `--cursor-repos` |
-| `agents-md` | Single `AGENTS.md` with all skill bodies concatenated | Vault root, plus any repos in `--agents-md-repos` |
+| `agents-md` | Skill bodies spliced into `AGENTS.md` between `<!-- brain-kit:start -->` markers (idempotent — re-runs replace the block, not duplicate it) | Vault root, plus any repos in `--agents-md-repos` |
 | `none` | No skills installed — just CLI + vault | — |
 
 ### Examples
@@ -74,6 +74,10 @@ It prompts for vault path, vault name (used for `obsidian://` links), and first 
 ```
 
 See `./install.sh --help` for all flags.
+
+### A note on AGENTS.md
+
+The vault skeleton ships with an `AGENTS.md` at the vault root — that's the harness-agnostic equivalent of `CLAUDE.md`. Recent Claude Code reads it natively; Codex, Cursor, Continue, Cline, and Aider read it too. If you only use Claude Code and prefer `CLAUDE.md`, symlink: `ln -s AGENTS.md CLAUDE.md` inside your vault.
 
 ### Cross-harness compatibility
 

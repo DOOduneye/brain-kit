@@ -1,6 +1,6 @@
 # Knowledge Base
 
-This is a brain-kit knowledge base. It is shared memory across Claude Code sessions.
+This is a brain-kit knowledge base. It is shared memory across agent sessions, read by any agent CLI that follows the `AGENTS.md` convention (Claude Code, Codex, Cursor, Continue, Cline, Aider, and others).
 
 ## Structure
 
@@ -12,9 +12,11 @@ This is a brain-kit knowledge base. It is shared memory across Claude Code sessi
 - `output/` — extraction reports and temporary query results
 - `bin/brain.mjs` — the CLI
 
-## When invoked from a project repo
+## Working in this vault
 
-The agent should use the `brain-dev` skill (loaded automatically by Claude Code when this vault is referenced).
+The full workflow lives in the `brain-dev` skill (or, if your agent doesn't load skills, see the `## brain-dev` section below if `install.sh --target agents-md` was used — it inlines the workflow here).
+
+Briefly: three modes — do it, draft it, work an issue. Always run `brain brief` first. Log non-obvious findings with `brain log`. Wrap sessions with `brain handoff`.
 
 ## Useful commands
 
