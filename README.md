@@ -7,14 +7,14 @@ I built it because every agent session forgets. The KB is where each session wri
 ## Install
 
 ```bash
-npm i -g brain-kit
+npm i -g github:DOOduneye/brain-kit
 brain-kit init
 ```
 
 Or without installing globally:
 
 ```bash
-npx brain-kit init
+npx github:DOOduneye/brain-kit init
 ```
 
 `init` will:
