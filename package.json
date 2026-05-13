@@ -1,13 +1,22 @@
 {
   "name": "brain-kit",
   "version": "0.1.0",
-  "description": "A knowledge-base dev workflow: brain CLI + Claude Code skills + Obsidian vault skeleton",
+  "description": "KB dev workflow for agent CLIs — brain CLI, vault skeleton, skills for Claude Code / Codex / Pi",
   "type": "module",
   "bin": {
-    "brain-kit": "./bin/install.mjs"
+    "brain-kit": "./bin/brain-kit.mjs"
   },
-  "scripts": {
-    "install:kit": "node bin/install.mjs"
+  "files": [
+    "bin",
+    "skills",
+    "commands",
+    "kb-skeleton",
+    "adapters",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
   },
   "repository": {
     "type": "git",

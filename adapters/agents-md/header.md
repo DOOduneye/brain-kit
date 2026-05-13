@@ -1,8 +1,8 @@
 # Agent Instructions
 
-This file is read by any agent CLI that follows the AGENTS.md convention (Codex, Cursor, Continue, Cline, Aider, and others). It contains the dev workflow this knowledge base expects agents to follow.
+Read by any agent CLI that follows the AGENTS.md convention — Claude Code, Codex, Pi, Continue, Cline, Aider, etc. The dev workflow this knowledge base uses lives in the brain-kit-managed block below.
 
-The CLI for managing this knowledge base is `brain` — run `brain --help` for the surface. Vault lives at the directory containing this file; `brain` finds it via its own filesystem location.
+The `brain` CLI manages the vault. Run `brain --help` for the full surface. The vault lives wherever this file does; `brain` locates itself from its own filesystem path.
 
 ---
 
