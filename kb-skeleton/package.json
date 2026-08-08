@@ -8,12 +8,5 @@
   },
   "scripts": {
     "brain": "node bin/brain.mjs"
-  },
-  "brainKit": {
-    "defaultProject": "__DEFAULT_PROJECT__",
-    "projectPrefixes": {},
-    "defaultRepo": null,
-    "internsDir": null,
-    "memoryPath": null
   }
 }

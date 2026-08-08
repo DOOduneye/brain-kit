@@ -112,27 +112,13 @@ function npmLink(cwd) {
 
 // ---------- skeleton scaffold ----------
 
-function scaffoldVault({ vault, vaultName, projectSlug }) {
+function scaffoldVault({ vault, vaultName }) {
   if (existsSync(vault) && readdirSync(vault).length > 0) {
     throw new Error(`${vault} is not empty. Pick a different path or empty it first.`);
   }
   mkdirSync(vault, { recursive: true });
   copyDir(join(ROOT, "kb-skeleton"), vault);
-  // rename the placeholder project
-  renameSync(join(vault, "PROJECT_TEMPLATE"), join(vault, projectSlug));
-  // title-case label for kanban
-  const label = projectSlug.split("-").map(s => s[0].toUpperCase() + s.slice(1)).join(" ");
-  replaceInFile(join(vault, "package.json"), [
-    ["__VAULT_NAME__", vaultName],
-    ["__DEFAULT_PROJECT__", projectSlug],
-  ]);
-  replaceInFile(join(vault, projectSlug, "kanban.base"), [
-    ["__PROJECT_SLUG__", projectSlug],
-    ["__PROJECT_LABEL__", label],
-  ]);
-  replaceInFile(join(vault, projectSlug, "index.md"), [
-    ["__PROJECT_LABEL__", label],
-  ]);
+  replaceInFile(join(vault, "package.json"), [["__VAULT_NAME__", vaultName]]);
 }
 
 // ---------- target installers ----------
@@ -276,7 +262,6 @@ async function cmdInit() {
     await ask("Vault path", join(HOME, "Documents/brain"))
   );
   const vaultName = args.flags.name || await ask("Vault name", basename(vault));
-  const projectSlug = args.flags.project || await ask("First project slug", "work");
   const targets = (args.flags.target || await ask(
     "Targets (comma-separated: claude-code, codex, pi, none)",
     "claude-code"
@@ -286,11 +271,10 @@ async function cmdInit() {
 
   log(`\nvault   ${vault}`);
   log(`name    ${vaultName}`);
-  log(`project ${projectSlug}`);
   log(`targets ${targets.join(", ")}\n`);
   if (!(await confirm("Proceed?", true))) { log("aborted"); return; }
 
-  scaffoldVault({ vault, vaultName, projectSlug });
+  scaffoldVault({ vault, vaultName });
   log(`scaffolded ${vault}`);
 
   if (!args.flags["no-npm-link"]) {
@@ -308,7 +292,7 @@ async function cmdInit() {
     },
   });
 
-  log(`\ndone. try: brain brief`);
+  log(`\ndone. try: brain work`);
 }
 
 async function cmdInstall() {

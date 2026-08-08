@@ -1,22 +1,37 @@
-# /wrap — Session Handoff
+---
+description: End the session — write a handoff doc the next session picks up.
+---
 
-Wrap the current session. Runs `brain handoff`, which tidies project/issue state, sweeps PR links, detects log-duplicates and decision candidates, then writes a structured handoff doc to `sessions/handoffs/<id>.md` for the next session to resume from.
+# /wrap
 
-## Usage
-
-```bash
-brain handoff                          # default — uses most-recently-touched project as topic
-brain handoff "<topic>"                # explicit topic (becomes handoff slug + title)
-brain handoff --dry-run                # preview without writing
-brain handoff --json                   # structured output
-brain handoff --no-tidy                # skip tidy pass
-```
-
-After wrapping, the next session starts with:
+Wrap the current session. Runs `brain handoff`, which collects work in flight,
+git state, and today's findings into `sessions/handoffs/<id>.md`.
 
 ```bash
-brain resume                           # loads latest handoff
-brain resume <id>                      # loads a specific one
+brain handoff                    # untitled
+brain handoff "drag sensor"      # topic becomes part of the filename
 ```
 
-See `skills/wrap/SKILL.md` for the full lifecycle.
+## Then fill in the placeholders
+
+The command leaves two sections blank on purpose, because they need judgement
+rather than collection. Fill both before finishing.
+
+**Next action** — one sentence naming the very next concrete thing to do, not
+"continue the investigation."
+
+**Where we are** — what changed and why. The reasoning that is not recoverable
+from the diff, including what was rejected and what it cost.
+
+A handoff with empty placeholders is worse than none, because the next session
+trusts it.
+
+## First, write anything durable to docs/
+
+A handoff is read once and goes stale. An article is read for a year. If a
+finding will still be true in six months regardless of what ships, it belongs in
+`docs/` — write it there before wrapping.
+
+## Related
+
+`/pickup` loads the handoff this creates.

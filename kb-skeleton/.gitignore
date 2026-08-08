@@ -1,0 +1,14 @@
+# Obsidian keeps its settings inside the vault. Version the small config files
+# so appearance, hotkeys and the plugin list follow you to a new machine —
+# but not the installed plugin code, and not the window layout.
+.obsidian/plugins/
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.trash/
+
+# Scratch output is regenerated, not kept.
+output/
+
+node_modules/
+.DS_Store

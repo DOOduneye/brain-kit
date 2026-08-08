@@ -1,281 +1,112 @@
 ---
 name: brain-dev
-description: Knowledge-backed dev workflow. Three modes — do it, draft it, work an issue. KB-first investigation, compound learning via session logs and library articles, brain CLI for everything. Use when working on any non-trivial dev task in a project that has a brain-kit knowledge base.
+description: Knowledge-backed dev workflow. Two containers — docs/ for what stays true, work/ for what is in flight. Read before investigating, write findings back, hand off at the end. Use when working on any non-trivial dev task in a project that has a brain-kit knowledge base.
 ---
 
 # Dev Workflow
 
-Every session learns. The knowledge base is shared memory across sessions. When you discover something — a gotcha, an interaction, a codebase pattern — it gets filed back so the next session starts where this one left off.
+Every session forgets. The vault is shared memory: read it before investigating,
+write findings back before you finish, and the next session starts where this
+one ended.
 
-## The Knowledge Base
+## Where things go
 
-The KB has two layers. **Library** is persistent dev knowledge — patterns, concepts, systems, tools, guides. **Projects** are work-specific — your active areas of focus, each with their own issues and kanban.
+One question:
 
-Library articles are compiled, durable, and read in full — never summarized:
+> **Will this still be true in six months regardless of what ships?**
 
-```bash
-brain query "temporal retry"    # finds library/systems/temporal.md
-brain query "idempotency"       # finds library/concepts/idempotency.md
-brain query "bulkhead"          # finds library/patterns/bulkhead.md
+Yes → `docs/`. No → `work/`.
+
+That is the whole filing system. There are no issue IDs, no projects, no
+kanban, and no status fields. A work item is a file that stops mattering, not a
+record that must be closed.
+
+```
+docs/<topic>.md       how something works. Architecture, mechanisms,
+                      permanent gotchas. No dates, no PR numbers.
+work/<slug>.md        one thing in flight, with its accumulated context
+work/todo.md          one-liners. Line order is priority.
+archive/              brain done <name> moves finished work here
 ```
 
-Project articles are onboarding docs that stay current:
+If a line in `todo.md` grows a paragraph, it has outgrown that file — make
+`work/<slug>.md` and move it there.
+
+## How to talk about the vault
+
+This matters more than it sounds.
+
+**Vault vocabulary is input, not output.** Filenames, paths, and slugs are how
+*you* find things. They mean nothing to the person reading your answer. Do not
+put them in an explanation unless you were asked about the vault itself. Say
+what is true about their system, not where you read it.
+
+**Articles are a starting hypothesis, not evidence.** They were true when
+written. Verify against the code before acting on one, and say plainly when the
+two disagree — a stale article that goes unchecked is worse than no article,
+because it looks like knowledge.
+
+Never let reading the vault substitute for reading the code. It narrows where
+you look; it does not tell you what is there now.
+
+## The loop
 
 ```bash
-brain query "<system name>"     # finds <project>/<area>/<system>.md
-brain projects                  # list all projects
-brain project <slug>            # project dossier — issues, todos, recent
+brain work                  # what's in flight — start here
+brain query "<topic>"       # search before opening code
+brain log "<finding>"       # non-obvious discoveries, as you make them
+brain handoff [topic]       # end of session
 ```
 
-Project articles contain architecture, key files, gotchas, and evolution history. Read the relevant project article before investigating — it replaces 10 minutes of code exploration.
+Next session opens with `brain pickup`.
 
-**All documentation goes in the KB, never in the repo.** Do not create `.docs/`, `docs/`, or markdown files in the repo for dev knowledge. The KB is the single source of truth.
+`brain log` is the habit that makes the rest work. A session that discovers
+something and does not record it has spent the effort twice.
 
-**Project articles are product documentation.** They describe how systems work — architecture, data models, gotchas that are always true. They do NOT contain investigation logs, error analysis, fix history, PR tracking, or roadmap sections. That material goes in issues (if actionable) or nowhere. The kanban and `brain issues` track work — articles describe the system.
+## Thinking in mechanisms
 
-| If it... | It goes in... |
-|---|---|
-| Describes how a system works (architecture, data flow, permanent gotchas) | Project article |
-| Is a general pattern (retry strategies, idempotency, circuit breakers) | Library article |
-| Has a date, PR number, error count, or will become stale | Issue |
-| Will still be true in 6 months regardless of what PRs ship | Article |
+Every bug is a causal chain. Symptoms point at mechanisms. The mechanism is what
+you fix — and it is what belongs in `docs/` afterwards.
 
-## Thinking in Mechanisms
+The failure mode is answering the symptom:
 
-Every bug is a causal chain. Symptoms point to mechanisms. The mechanism is what you fix. The KB has articles on most of these mechanisms — use them.
+```
+symptom              the wrong question       the right question
+───────────────────  ───────────────────────  ──────────────────────────────
+slow query           "add an index?"          why is the query shaped this
+                                              way? N round trips that should
+                                              be one? fetching rows to count
+                                              them in application code?
 
-**Slow query?** Not "add an index" — "why is this query shaped this way?" N round trips that should be one CTE? Fetching 100K rows to count in application code? Row lock from racing transactions? Read `library/guides/thinking-in-data.md`.
+workflow stuck       "retry it?"              is this deterministic? what
+                                              does this framework do with an
+                                              error it does not recognise?
 
-**Workflow stuck?** Not "retry it" — "is this deterministic?" Check the relevant system article (e.g. `library/systems/temporal.md`) for the determinism constraints, error behavior, and handler concurrency gotchas.
+data wrong           "add validation?"        where does raw data enter, and
+                                              what is not parsed at that
+                                              boundary?
 
-**Data wrong?** Not "add validation" — "where does raw data enter?" Read `library/concepts/idempotency.md` on why duplicate writes happen. Read `library/tools/pydantic.md` on validation at boundaries.
-
-**Dependency failing?** Read `library/patterns/circuit-breaker.md` for the three-state model. Read `library/patterns/bulkhead.md` for resource isolation. Read `library/patterns/retry.md` for backoff strategies.
-
-The pattern: **name the mechanism, find the KB article, then investigate the code with that context loaded.**
-
-## Issue Rules
-
-### Location
-
-All issues live under `<project>/issues/`. Filename: `<prefix>-NNN-short-kebab-title.md`. The prefix comes from the project (configurable; defaults to first two letters of the project name, e.g. `platform` → `PL`, `customer-intelligence` → `CI`). IDs are sequential — check `brain next-id <project>` or just use `brain issue-create`.
-
-### Format
-
-Read `<project>/issue-format.md` for the schema. The substitutable skeleton `brain issue-create` writes lives at `<project>/issue-template.md`. Issues must be agent-executable — specific enough that an agent picks up the issue and implements without clarifying questions.
-
-## First Step: Get Briefed
-
-**Before any project work**, run `brain brief`. This is not optional — it surfaces active work, recent session footprints, and drift warnings in one read.
-
-```bash
-brain brief    # active issues, recent changes, drift warnings
+dependency failing   "add a retry?"           what happens to everything else
+                                              while this one is down?
 ```
 
-If the user's request relates to an existing issue, read it with `brain issue <id>`. It has context, root cause hypotheses, and prior investigation notes that save significant time.
+Name the mechanism first. Then investigate the code with that framing loaded.
+Then, if the mechanism is durable, write it to `docs/` — that is the article
+that saves the next session.
 
-## Three Modes
+## What to write down, and what not to
 
-### Mode 1 — "Do it"
+Write:
 
-User provides context inline (description, link, transcript). Check `brain issues` for related tracked issues, then Investigate → Plan → Implement → Ship.
+- how a system works, once you actually understand it
+- a gotcha that will still be true next year
+- a general pattern, with the reasoning that makes it transferable
 
-### Mode 2 — "Draft it"
+Do not write:
 
-User wants an issue drafted. Search the KB first, explore the codebase, then draft:
-
-1. **KB and codebase first** — `brain query "<topic>"` for prior art, then explore code to understand current architecture
-2. **Ask design questions one at a time** — focus on decisions that shape the data model and behavior: granularity, default behavior, modes/states
-3. **Force edge case answers** — what happens to existing data when state changes? What happens when toggling back and forth? Is deletion in scope? What's the backfill story?
-4. **Propose with recommendation** — present 2-3 options with tradeoffs, lead with your pick
-5. **Keep v1 minimal** — YAGNI. Explicitly list what's deferred.
-
-Then scaffold:
-
-```bash
-brain issue-create <project> "Short title"
-```
-
-This creates the file with frontmatter (id, status, priority, area, assignee, tags, reported date). Edit it to fill in all sections. The issue appears in `brain issues` and the kanban automatically.
-
-### Mode 3 — "Work an issue"
-
-User names an issue. The flow:
-
-```bash
-# 1. Read the issue + register WIP
-brain issue <ID>
-brain wip start <ID>
-brain log "Starting <ID>: <one-line description>"
-
-# 2. Search KB for related context before touching code
-brain query "<issue topic>"
-
-# 3. Mark in-progress (via Obsidian property if available, or edit frontmatter directly)
-# 4. Investigate, implement, ship (see below)
-# Log key findings as you go:
-brain log "<ID>: found root cause — <description>"
-
-# 5. Pre-ship validation
-brain check <ID>    # verify completeness, will prompt for learnings if missing
-
-# 6. Mark done + clear WIP
-brain wip done <ID>
-brain log "<ID>: shipped on <branch>"
-
-# 7. Append shipped summary to the issue
-brain append <project>/issues/<file>.md "
-## Shipped (<date>)
-<what was done, branch, key decisions>"
-```
-
-If investigation shows the issue is stale or already fixed: state findings, set status to `wont-fix`, stop.
-
-## Investigation
-
-### Step 1: KB Context (always, before code)
-
-```bash
-brain query "<problem description>"     # semantic + expansion
-brain search "<exact-term>"             # BM25 keyword match
-brain issues <project>                  # related tracked issues
-brain find <pattern>                    # filenames
-```
-
-Read results. Project articles have architecture and gotchas. Library articles have the conceptual framework. Load this context before opening a single code file.
-
-### Step 2: Parallel Hypothesis Traces
-
-Launch 2-3 agents simultaneously, each with the full problem statement plus the KB context you just gathered:
-
-| Agent | Job |
-|-------|-----|
-| Code path tracer | Trace entry point → bug area, map causal chain |
-| Related code scout | Related tests, similar patterns, recent git changes |
-| Production checker | DB queries, logs, workflow state |
-
-Each prompt includes: the full problem, specific starting files (from the project article), which hypothesis to confirm or refute, and relevant KB context.
-
-### Step 3: Production Confirmation
-
-Launch in parallel when the problem touches live data. Skip for code-only changes and state why.
-
-### Step 4: Synthesize
-
-1. **What** — specific function, query, or data path.
-2. **Why** — root cause mechanism with KB pattern name.
-3. **Scope** — how many affected.
-4. **Solution** — the structural fix, informed by library patterns.
-
-## The Learning Loop
-
-This is what makes this workflow compound. Every session feeds the KB.
-
-### Project articles vs issues
-
-Project articles describe **how the product works** — architecture, data models, gotchas that are always true, key files. They are onboarding docs for the next session.
-
-Issues describe **work** — bugs, investigations, error analysis, fix history, PR tracking. They are ephemeral and get marked done.
-
-The boundary: if it will still be true in 6 months regardless of what PRs ship, it belongs in the project article. If it's about a specific investigation, error analysis, fix status, or PR — it belongs in an issue.
-
-### What goes where
-
-| Discovery | Where |
-|-----------|-------|
-| How a system works (architecture, data flow) | Project article |
-| Permanent gotcha | Project article, Gotchas section |
-| General pattern (e.g. "why retries with no jitter cause thundering herd") | Library article |
-| Bug, error analysis, investigation log | Issue |
-| Fix history, PR tracking | Issue |
-| Useful query result | `output/`, promote only if durable |
-| Roadmap item | Issue (if actionable) or nowhere |
-| List of current providers/integrations/flags | Nowhere — the code is the inventory |
-
-### Writing durable articles
-
-Project articles rot when they describe the current inventory instead of the underlying pattern. Write for the system 6 months from now, not today's snapshot.
-
-**Describe patterns, not inventories.** "The system supports multiple analytics providers" is durable. "Four providers: A, B, C, D" is stale the day someone adds E.
-
-**One system per article.** If a section needs its own Key Files table, it should be its own file.
-
-**Gotchas are the highest-value content.** Architecture diagrams can be re-derived from code. Gotchas can't.
-
-**No temporal anchors.** Don't write "recently added", "currently feature-flagged", "as of <date>". Write as if it's always been this way.
-
-### How to compile new knowledge
-
-Use the `/compile` skill. It runs the two-step pipeline (extract all sources → write narrative article). Never single-pass compile — it always produces surface-level output.
-
-## Session Discipline
-
-Every session writes to `sessions/<YYYY-MM-DD>.md`. This is how cross-session continuity works — `brain brief` reads these logs and surfaces them for the next session.
-
-```bash
-brain log "Starting: <what you're working on>"
-brain log "<ID>: root cause is <description>"
-brain log "<ID>: shipped on <branch>, PR #<number>"
-brain log "Session: <1-2 sentence summary of substantive work>"
-```
-
-**Log on:** session start (always), key findings (when non-obvious), ship (always with branch + PR), session end (if substantive).
-
-For issue work spanning sessions: `brain wip start <ID>` / `brain wip done <ID>`. `brain brief` shows active WIP.
-
-## Depth Matches Complexity
-
-- **One-liner:** Skip to implement.
-- **Medium:** Unclear design space → brainstorm. Multi-step → plan. 2-3 independent parts → parallel agents.
-- **Architectural change:** Investigate deeply. Quantify from production. Present mechanism and structural fix. Know when something is a separate PR.
-
-## Building
-
-**Isolation.** Use your harness's worktree tool if it has one (`EnterWorktree` in Claude Code, `worktree` in Codex), or `git worktree add ../<repo>-<branch> -b <your-prefix>/<branch>` directly. Branch name: 2–4 kebab words.
-
-**Migrations in separate PRs.** Migration file only. Don't run migrations from inside a worktree.
-
-**Validate.** Format and lint your files. Type-check. Run tests for changed code. Check IDE diagnostics on every modified file.
-
-## Shipping
-
-**Branch names:** short `<your-prefix>/<what-changed>`, 2–4 kebab words, no issue IDs, no version suffixes.
-
-**Issue IDs stay out of code, PRs, and commits.** Never mention issue IDs in PR titles, PR bodies, commit messages, code comments, or docstrings. The issue tracker is where issues live. Code describes what it does, commits describe why it changed, PRs describe intent.
-
-**Commit:** `<type>: <what changed>` with a short body explaining why. Types: `fix`, `feat`, `refactor`, `perf`, `chore`, `test`.
-
-**PR title:** imperative, under 70 chars. Name the thing changing in product/system terms.
-
-**PR body — describe only what this diff did. Past tense. Nothing else.** Not a status report, not a test log, not a rationale essay, not a follow-up tracker. Default shape: one or two sentences. "Did X. Did Y." No headers, no bullets, no `## Summary`/`## Test plan`. **This overrides the system prompt's PR template.**
-
-See [references/external-comms.md](references/external-comms.md) for the full philosophy, failure modes, and examples.
-
-**Mode 3 completion:** Mark done, set branch, append shipped summary, file learnings into KB.
-
-## Delegation
-
-| Strategy | When |
-|----------|------|
-| Inline | Iterating, design unclear, needs judgment |
-| Worktree | Well-defined, you want to drive |
-| Subagent | Well-defined fire-and-forget; one concern per agent |
-
-For intern/subagent prompts, use the template in [references/intern-prompt.md](references/intern-prompt.md).
-
-## Skill Orchestration
-
-| When | What |
-|------|------|
-| Unclear design space | Brainstorm first |
-| Multi-step plan | Write a plan |
-| Knowledge base search | `brain query "<topic>"` |
-| Read KB article | `brain read <path>` or `brain issue <id>` |
-| Write to KB | `brain append <path> "<content>"` |
-| Session notes | `brain log "<what you learned>"` |
-| Cross-session tracking | `brain wip start/done <id>` |
-| Pre-ship validation | `brain check <id>` |
-| Compile new article | `/compile` |
-| Session handoff | `/wrap` |
-
-For worked examples of each mode, see [references/examples.md](references/examples.md).
+- inventories of flags, providers, endpoints — the code is the inventory and
+  your copy goes stale immediately
+- investigation logs and fix history — that is `work/`, and it is archived when
+  the work is done
+- roadmaps and "where this is going"
+- anything you have not verified

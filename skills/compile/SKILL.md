@@ -11,7 +11,7 @@ Two-step compilation of raw sources into a structured library article. Never sin
 
 - User asks to research and document a topic
 - User asks to compile a KB article
-- User asks to write a library/wiki article
+- User asks to write a docs article
 - User invokes `/compile`
 - User says "time to save and document"
 
@@ -23,7 +23,7 @@ Two-step compilation of raw sources into a structured library article. Never sin
 3. Gather more sources  →  WebFetch for URLs, web search for gaps
 4. Extract (Step 1)     →  Agent reads ALL sources, produces extraction report
 5. Write (Step 2)       →  Agent writes article from extraction + format spec
-6. Index                →  Update library/index.md, reindex any search index
+6. Index                →  Update docs/index.md, reindex any search index
 ```
 
 **Every step is mandatory. Do not skip steps or combine 4+5 into one pass.**
@@ -35,7 +35,7 @@ Before touching the web, check the vault:
 ```bash
 brain query "<topic>"
 brain find "*<topic-slug>*"
-brain read library/index.md      # see existing categories
+brain read docs/index.md      # see existing categories
 ```
 
 If an article already exists, this is an UPDATE not a CREATE. Read the existing article first.
@@ -93,7 +93,7 @@ Pass the FULL text of all sources to the agent — don't summarize or truncate.
 Dispatch a second agent with:
 - The full extraction report
 - The article format spec (below)
-- Instructions to write to `library/<category>/<slug>.md`
+- Instructions to write to `docs/<slug>.md`
 
 ### Article Categories
 
@@ -142,7 +142,7 @@ updated: YYYY-MM-DD
 ```
 You are writing a knowledge base article. Write to <path>.
 
-Style: read library/concepts/<reference-article>.md for tone (first 50 lines is enough).
+Style: read docs/<reference-article>.md for tone (first 50 lines is enough).
 
 Format: [paste frontmatter template with filled values]
 
@@ -161,12 +161,12 @@ Here is the extraction report:
 
 After the article is written:
 
-1. Update `library/index.md` — add one-line entry in the right category section
+1. Update `docs/index.md` — add one-line entry in the right category section
 2. Stamp the extraction with its destination so drift detection is accurate. Add YAML frontmatter to `output/<topic>-extraction.md`:
    ```yaml
    ---
    type: extraction
-   compiled_into: library/<category>/<slug>.md
+   compiled_into: docs/<slug>.md
    extracted: YYYY-MM-DD
    ---
    ```
@@ -189,5 +189,5 @@ When compiling multiple articles at once:
 | WebFetch before checking vault | Check `raw/` and `brain query` FIRST |
 | Summarizing sources for the agent | Pass FULL text of all sources |
 | Listing gotchas in a separate section | Weave into narrative with callout boxes |
-| Skipping the index update | Always update `library/index.md` |
+| Skipping the index update | Always update `docs/index.md` |
 | Not reading the SKILL.md | This is your process. Follow it exactly. |
