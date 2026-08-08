@@ -1,73 +1,49 @@
 ---
 name: wrap
-description: Session handoff — tidies project/issue state, sweeps PR links, writes a structured handoff doc to sessions/handoffs/ for the next session to resume from. Use when the user says wrap up, save context, hand off, or hits context pressure.
+description: Session handoff — writes a structured doc to sessions/handoffs/ that the next session loads with `brain pickup`. Use when the user says wrap up, save context, hand off, or when hitting context pressure.
 ---
 
-# /wrap — Session Handoff
+# Wrap
 
-Wrap the current session. Runs `brain handoff`, which tidies project/issue state, sweeps PR links, detects log-duplicates and decision candidates, then writes a structured handoff doc to `sessions/handoffs/<id>.md` for the next session to resume from.
-
-## What it does
-
-1. **Tidy pass** (before capturing context):
-   - `brain tidy prs` — sweep active issues/projects for `gh pr list` matches, inject PR references into issue frontmatter.
-   - `brain tidy project <slug>` for each discovered project — derive status from linked issues, update `last_touched`.
-   - `brain tidy logs` — flag duplicate entries in today's session log.
-
-2. **Capture session context** — log entries, recent branches, PR states, active subagents, WIP issues, touched projects, files edited in last 24h.
-
-3. **Write handoff doc** — `sessions/handoffs/h-YYYYMMDD-HHMM-<topic>.md` with structured sections: where-we-are, next-action (placeholder), projects-touched, recently-shipped, active-PRs, active-WIP, files-touched.
-
-4. **Emit resume command** — next session runs `brain resume <id>` or `brain resume` (defaults to latest).
-
-## Usage
+Write the doc the next session reads. Run `brain handoff [topic]`, then fill in
+the two sections it leaves blank — those are the parts only you can write.
 
 ```bash
-# Default — tidy + wrap, uses most-recently-touched project as topic
-brain handoff
-
-# With an explicit topic (becomes the handoff slug + title)
-brain handoff "kb layout + brain commands"
-
-# Preview without writing
-brain handoff --dry-run
-
-# Structured JSON output
-brain handoff --json
-
-# Skip the tidy pass (handoff-only)
-brain handoff --no-tidy
+brain handoff                    # untitled
+brain handoff "drag sensor"      # topic becomes part of the filename
 ```
 
-## When to call
+## What the command collects
 
-- **Manual**: user says "wrap up," "save context," or hits context pressure.
-- **Agent-initiated**: if the context indicator shows >75% used and current work isn't concluded, proactively suggest wrapping.
-- **Before spawning a subagent**: handoff first so the subagent prompt references a durable doc rather than cold-reading the conversation.
-- **End-of-day**: encouraged before shutting down a long session.
+- work files currently in flight
+- git branch, uncommitted count, last five commits
+- today's `brain log` entries
 
-## After wrapping
+## What you have to write
 
-The command prints a one-line resume invocation:
+`brain handoff` deliberately leaves two placeholders, because they need
+judgement rather than collection.
 
-```
-resume with:  brain resume h-20260417-1630-<topic>
-```
+**Next action** — one sentence naming the very next concrete thing to do. Not
+"continue the investigation." Something like "check whether the retry wrapper
+swallows the cancellation error at `worker.ts:210`."
 
-Next session starts with:
+**Where we are** — what changed this session and why. The reasoning that is not
+recoverable from the diff. If a decision was made, record what was rejected and
+what it cost.
+
+Fill both in before you finish. A handoff with empty placeholders is worse than
+none, because the next session trusts it.
+
+## Before wrapping
+
+Anything durable you learned belongs in `docs/`, not in the handoff. A handoff
+is read once and goes stale; an article is read for a year. If a finding will
+still be true in six months, write it to `docs/` first, then wrap.
+
+## The next session
 
 ```bash
-brain resume                 # loads latest handoff
-brain resume <id>            # loads a specific one
+brain pickup          # latest handoff, then brain work
+brain pickup h-2026   # a specific one, by prefix
 ```
-
-`brain resume` prints the handoff doc + runs `brain brief` for fresh state — ~2k structured tokens replacing cold-read of conversation history.
-
-## Filling in "Next action"
-
-The handoff doc has a `## Next action` section with a `TODO` placeholder. Before wrap completes, review and edit it manually (or pass the intent via the topic argument and edit after). A concrete next action matters more than any other section — it's what the next session acts on first.
-
-## Related
-
-- `brain tidy <verb>` — individual cleanup passes, invokable mid-session.
-- `brain project <slug>` — project dossier, useful for orienting before wrap.

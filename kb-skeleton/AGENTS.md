@@ -1,33 +1,58 @@
 # Knowledge Base
 
-This is a brain-kit knowledge base. It is shared memory across agent sessions, read by any agent CLI that follows the `AGENTS.md` convention (Claude Code, Codex, Cursor, Continue, Cline, Aider, and others).
+Shared memory across agent sessions. Read by any agent CLI that follows the
+`AGENTS.md` convention.
 
-## Structure
+## Where things go
 
-- `library/` — durable dev knowledge (concepts, patterns, guides, systems, tools)
-- `<project>/` — work-specific projects, each with `issues/`, `projects/`, `decisions/`
-- `journal/` — personal journal entries (the user's, not the agent's)
-- `sessions/` — agent session logs (`brain log`) and handoff docs
-- `raw/` — raw sources clipped from the web, used as input to `/compile`
-- `output/` — extraction reports and temporary query results
-- `bin/brain.mjs` — the CLI
+One question decides it:
 
-## Working in this vault
+> **Will this still be true in six months regardless of what ships?**
 
-The full workflow lives in the `brain-dev` skill (or, if your agent doesn't load skills, see the `## brain-dev` section below if `install.sh --target agents-md` was used — it inlines the workflow here).
+```
+yes  →  docs/          how something works. Architecture, mechanisms,
+                       permanent gotchas. No dates, no PR numbers.
 
-Briefly: three modes — do it, draft it, work an issue. Always run `brain brief` first. Log non-obvious findings with `brain log`. Wrap sessions with `brain handoff`.
+no   →  work/          one file per thing in flight, named by slug:
+                       work/drag-sensor-crash.md
+        work/todo.md   one-liners that don't need a file yet.
+                       Line order is priority.
+```
 
-## Useful commands
+Everything else:
+
+```
+archive/    finished work. `brain done <name>` moves it here.
+journal/    the user's notes, not yours.
+sessions/   your session logs and handoff docs.
+raw/        clipped sources, input to /compile.
+output/     extraction reports and scratch query results.
+```
+
+There are no issue IDs, no projects, no kanban, and no status fields. A work
+item is a file that stops mattering, not a record that must be closed.
+
+## Talking about this vault
+
+Filenames and paths here are **input, not vocabulary**. Do not put slugs, file
+paths, or vault structure into an explanation unless the user asked about the
+vault itself. Say what is true about their system, not where you read it.
+
+Articles are a **starting hypothesis, not evidence**. Verify against the code
+before acting on one, and say so when they disagree. A stale article that goes
+unchecked is worse than no article.
+
+## Session loop
 
 ```bash
-brain brief                        # situational awareness
-brain projects                     # list projects
-brain issues <project>             # active issues
-brain query "<topic>"              # semantic search
-brain log "<note>"                 # append to today's session log
-brain handoff [topic]              # wrap session, write handoff doc
-brain resume [id]                  # resume from latest or specific handoff
+brain work                     # what's in flight, oldest flagged
+brain query "<topic>"          # search before opening code
+brain log "<finding>"          # non-obvious discoveries, as you make them
+brain handoff                  # end of session
+brain pickup                   # start of the next one
 ```
+
+Write findings back. A session that discovers something and doesn't record it
+has spent the effort twice.
 
 Full help: `brain --help`.
